@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /camera_sessions/{sessionId} {
+      allow create: if request.auth != null && request.resource.data.status == 'REQUESTED';
+      allow update: if request.auth != null && (
+        // Child must approve
+        (resource.data.childDeviceId == request.auth.uid && request.resource.data.status in ['APPROVED', 'REJECTED']) ||
+        (resource.data.parentId == request.auth.uid && request.resource.data.status == 'ENDED')
+      );
+    }
+  }
+}
